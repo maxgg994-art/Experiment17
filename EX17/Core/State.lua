@@ -1,323 +1,114 @@
 -- Core/State.lua
--- Центральная таблица состояния всего чита
 
 local State = {}
-local Services = _G.Experiment17.Services
-
--- Значения по умолчанию для сброса
-local defaults = {
-    -- System
-    panicMode = false,
-    currentTab = "Legit",
-    bodyGyro = nil,
-    bodyVelocity = nil,
-    musicPlayer = nil,
-    espObjects = {},
-    tracersList = {},
-    wireframeObjects = {},
-    worldOutlines = {},
-    waitingForKeybind = nil,
-    npcList = {},
-    notifications = {},
-    toggleSetters = {},
-    keybindButtons = {},
-    savedCharacterSize = {},
-    cachedCoins = {},
-    musicPlaylist = {},
-    musicCurrentIndex = 1,
-    musicPlaying = false,
-
-    -- Timers
-    lastStrafeTime = 0,
-    lastTriggerTime = 0,
-    lastMicroTPTime = 0,
-    lastAFKTime = 0,
-    lastChatSpamTime = 0,
-    lastWallHopTime = 0,
-    lastRocketJumpTime = 0,
-    lastSpeedBurstTime = 0,
-    lastPhaseTime = 0,
-    lastRespawnTime = 0,
-    lastESPUpdate = 0,
-    lastAimAssistTime = 0,
-    lastTracerUpdate = 0,
-    lastNPCUpdate = 0,
-    lastFarmTime = 0,
-    lastCoinCache = 0,
-
-    -- Legit
-    airStrafe = false,
-    airStrafeSpeed = 0,
-    airStrafeMaxSpeed = 150,
-    jumpPower = 50,
-    antiAFK = false,
-    antiAFKMode = "Micro",
-    antiAFKFrequency = 10,
-    noProximityDelay = false,
-    antiStaff = false,
-    chatSpam = false,
-    chatSpamMode = 1,
-    chatSpamMinDelay = 2,
-    chatSpamMaxDelay = 5,
-    chatSpamMessages = "Hello!|GL HF|Nice!|Good luck!",
-    safeWalk = false,
-    fastInteract = false,
-    autoTool = false,
-    quickTurn = false,
-    wallHop = false,
-    wallHopPower = 150,
-    step = false,
-    stepHeight = 3,
-    rocketJump = false,
-    rocketJumpPower = 200,
-    rocketJumpMode = "Velocity",
-    glide = false,
-    glideSpeed = 0.95,
-
-    -- Rage
-    speedBoost = false,
-    speedMultiplier = 2,
-    microTP = false,
-    microTPDistance = 10,
-    fly = false,
-    flySpeed = 50,
-    flyMode = "CFrame",
-    noClip = false,
-    spinBot = false,
-    spinSpeed = 10,
-    gravity = 196.2,
-    jumpPowerRage = 50,
-    infiniteJump = false,
-    speedBurst = false,
-    speedBurstPower = 100,
-    phase = false,
-    phaseDistance = 5,
-    reverseWalk = false,
-    noSlowdown = false,
-    antiRagdoll = false,
-    autoRespawn = false,
-    antiFreeze = false,
-    antiTeleport = false,
-    fastLadder = false,
-    fastLadderSpeed = 3,
-    noCollision = false,
-    walkOnWater = false,
-    noFallDamage = false,
-    fastSwim = false,
-    fastSwimSpeed = 3,
-    noLavaDamage = false,
-    infiniteStamina = false,
-    noPush = false,
-    autoRotate = false,
-    autoRotateSpeed = 5,
-    characterSize = 1,
-    autoCollisionPush = false,
-    pushRotateSpeed = 15,
-    pushDirection = 1,
-    bodyFacing = false,
-
-    -- Safe
-    safeFunctions = false,
-    safeFOV = 70,
-    safeSpeed = 16,
-    safeJump = 50,
-    valueUnlocker = false,
-
-    -- Farm
-    autoFarm = false,
-    coinName = "Coin",
-    farmType = "TP",
-    farmSpeed = 2,
-    farmUseSpawns = false,
-    farmSpawnMin = 1,
-    farmSpawnMax = 10,
-    farmSpawnPrefix = "Spawn",
-
-    -- TP
-    teleportTarget = nil,
-    teleportDistance = 3,
-    teleportPosition = "Behind",
-    tpCameraSmooth = 0,
-
-    -- View
-    firstPerson = false,
-    thirdPerson = true,
-    cameraDistance = 10,
-    fov = 70,
-    mouseUnlocked = false,
-    cameraShake = true,
-    cameraSpin = false,
-    cameraSpinSpeed = 5,
-    freecam = false,
-    freecamSpeed = 50,
-    cameraRoll = 0,
-    removeUI = false,
-    nightMode = false,
-    noCameraClip = false,
-    forceView = false,
-    transparentUI = false,
-
-    -- Visual
-    espEnabled = false,
-    espMode = "Highlight",
-    espColor = Color3.fromRGB(255, 50, 50),
-    espTransparency = 0.3,
-    espThickness = 2,
-    espShowName = true,
-    espShowDistance = true,
-    espShowHealth = true,
-    tracers = false,
-    tracerColor = Color3.fromRGB(255, 255, 255),
-    tracerThickness = 0.1,
-    espNPC = false,
-    wireframe = false,
-    wireframeTransparency = 0.8,
-    textureTransparency = 0,
-    outlineWorld = false,
-    outlineWorldColor = Color3.fromRGB(255, 0, 0),
-    playerMaterial = "Default",
-    playerColor = false,
-    playerColorValue = Color3.fromRGB(255, 0, 0),
-    rainbowPlayers = false,
-
-    -- Body
-    highlightHead = false,
-    headColor = Color3.fromRGB(255, 50, 50),
-    headTransparency = 0.3,
-    highlightTorso = false,
-    torsoColor = Color3.fromRGB(50, 255, 50),
-    torsoTransparency = 0.3,
-    highlightArms = false,
-    armsColor = Color3.fromRGB(50, 50, 255),
-    armsTransparency = 0.3,
-    highlightLegs = false,
-    legsColor = Color3.fromRGB(255, 255, 50),
-    legsTransparency = 0.3,
-    skeletonESP = false,
-    skeletonColor = Color3.fromRGB(255, 255, 255),
-    highlightOutline = true,
-    highlightOutlineColor = Color3.fromRGB(255, 255, 255),
-    highlightFillColor = Color3.fromRGB(255, 50, 50),
-
-    -- Aimbot
-    aimbotEnabled = false,
-    aimbotFOV = 90,
-    aimbotSmoothness = 1,
-    aimbotTargetPart = "Head",
-    aimbotMode = "Crosshair",
-    aimbotLockTarget = nil,
-    aimbotMaxDistance = 500,
-    aimbotIgnoreSpawn = true,
-    aimbotIgnoreTeam = true,
-    aimbotTargetNPC = true,
-    aimbotTargetPlayers = true,
-    aimbotPlayerList = {},
-    aimbotListMode = "Blacklist",
-    aimAssist = false,
-    aimAssistStrength = 0.5,
-    silentAim = false,
-    silentAimFOV = 90,
-    silentAimTargetPart = "Head",
-    triggerBotEnabled = false,
-    triggerBotDelay = 0.1,
-    triggerBotTargetPart = "Head",
-
-    -- World
-    worldBrightness = 3,
-    worldAmbient = Color3.fromRGB(128, 128, 128),
-    worldOutdoorAmbient = Color3.fromRGB(128, 128, 128),
-    worldExposureCompensation = 0,
-    worldEnvDiffuseScale = 1,
-    worldEnvSpecularScale = 1,
-    worldShadowSoftness = 0.5,
-    worldGlobalShadows = true,
-    worldClockTime = 14,
-    worldAtmosphereEnabled = true,
-    worldAtmosphereDensity = 0.3,
-    worldAtmosphereOffset = 0,
-    worldAtmosphereColor = Color3.fromRGB(200, 200, 255),
-    worldAtmosphereGlare = 0,
-    worldAtmosphereHaze = 0,
-    disableFog = false,
-    noTextures = false,
-
-    -- Keys
-    toggleGuiKey = "RightShift",
-    unlockMouseKey = "LeftAlt",
-    flyKey = "F",
-    noClipKey = "N",
-    airStrafeKey = "V",
-    speedBoostKey = "B",
-    aimbotKey = "T",
-    silentAimKey = "Y",
-    triggerBotKey = "G",
-    teleportSelectKey = "L",
-    teleportExecuteKey = "Slash",
-    panicKey = "F8",
-    quickTurnKey = "Q",
-    rocketJumpKey = "X",
-    freecamKey = "P",
-
-    -- Settings
-    guiSize = 1,
-    guiOpen = true,
-    guiBackgroundColor = Color3.fromRGB(0, 0, 0),
-    guiStrokeColor = Color3.fromRGB(255, 255, 255),
-    guiFrameColor = Color3.fromRGB(5, 5, 5),
-    showNotifications = true,
-    notificationDuration = 3,
-    musicEnabled = false,
-    musicURL = "",
-    musicVolume = 0.5,
-    musicLoop = false,
-    clickSound = "None",
-    clickVolume = 0.5,
-
-    -- Color Picker
-    colorPickerOpen = false,
-    colorPickerCallback = nil,
-    colorPickerHue = 0,
-    colorPickerSat = 1,
-    colorPickerVal = 1,
-    colorPickerFrame = nil,
-}
 
 function State.init()
-    -- Копируем все значения по умолчанию
-    for k, v in pairs(defaults) do
-        if type(v) == "table" then
-            State[k] = {}
-            for kk, vv in pairs(v) do
-                State[k][kk] = vv
-            end
-        else
-            State[k] = v
-        end
-    end
-
-    -- Особые значения
     State.guiSize = _G.Experiment17.guiScale
-    State.fov = 70
+    State.panicMode = false
+    State.currentTab = "Legit"
+    State.bodyGyro = nil
+    State.bodyVelocity = nil
+    State.musicPlayer = nil
+    State.espObjects = {}
+    State.tracersList = {}
+    State.wireframeObjects = {}
+    State.worldOutlines = {}
+    State.waitingForKeybind = nil
+    State.npcList = {}
+    State.notifications = {}
+    State.toggleSetters = {}
+    State.keybindButtons = {}
+    State.savedCharacterSize = {}
+    State.cachedCoins = {}
+    State.musicPlaylist = {}
+    State.musicCurrentIndex = 1
+    State.musicPlaying = false
 
-    print("[State] Initialized with " .. tostring(#defaults) .. " fields")
-end
+    State.airStrafe = false; State.airStrafeSpeed = 0; State.airStrafeMaxSpeed = 150
+    State.jumpPower = 50; State.antiAFK = false; State.antiAFKMode = "Micro"; State.antiAFKFrequency = 10
+    State.chatSpam = false; State.chatSpamMode = 1; State.chatSpamMinDelay = 2; State.chatSpamMaxDelay = 5
+    State.chatSpamMessages = "Hello!|GL HF|Nice!|Good luck!"
+    State.safeWalk = false; State.fastInteract = false; State.autoTool = false; State.quickTurn = false
+    State.wallHop = false; State.wallHopPower = 150; State.step = false; State.stepHeight = 3
+    State.rocketJump = false; State.rocketJumpPower = 200; State.rocketJumpMode = "Velocity"
+    State.glide = false; State.glideSpeed = 0.95
 
--- Сброс к значениям по умолчанию
-function State.resetToDefaults()
-    for k, v in pairs(defaults) do
-        if type(v) ~= "table" and type(v) ~= "function" and type(v) ~= "userdata" then
-            if State[k] ~= nil then
-                State[k] = v
-            end
-        end
-    end
-    print("[State] Reset to defaults")
-end
+    State.speedBoost = false; State.speedMultiplier = 2; State.microTP = false; State.microTPDistance = 10
+    State.fly = false; State.flySpeed = 50; State.flyMode = "CFrame"; State.noClip = false
+    State.spinBot = false; State.spinSpeed = 10; State.gravity = 196.2; State.jumpPowerRage = 50
+    State.infiniteJump = false; State.speedBurst = false; State.speedBurstPower = 100
+    State.phase = false; State.phaseDistance = 5; State.reverseWalk = false; State.noSlowdown = false
+    State.antiRagdoll = false; State.autoRespawn = false; State.antiFreeze = false; State.antiTeleport = false
+    State.fastLadder = false; State.fastLadderSpeed = 3; State.noCollision = false
+    State.walkOnWater = false; State.noFallDamage = false; State.fastSwim = false; State.fastSwimSpeed = 3
+    State.noLavaDamage = false; State.infiniteStamina = false; State.noPush = false
+    State.autoRotate = false; State.autoRotateSpeed = 5; State.characterSize = 1
+    State.autoCollisionPush = false; State.pushRotateSpeed = 15; State.pushDirection = 1; State.bodyFacing = false
 
--- Быстрое уведомление
-function State.notify(text, color)
-    local NotificationManager = require(script.Parent.Parent.Managers.NotificationManager)
-    NotificationManager.show(text, color)
+    State.safeFunctions = false; State.safeFOV = 70; State.safeSpeed = 16; State.safeJump = 50
+    State.valueUnlocker = false
+
+    State.autoFarm = false; State.coinName = "Coin"; State.farmType = "TP"; State.farmSpeed = 2
+    State.farmUseSpawns = false; State.farmSpawnMin = 1; State.farmSpawnMax = 10; State.farmSpawnPrefix = "Spawn"
+
+    State.teleportTarget = nil; State.teleportDistance = 3; State.teleportPosition = "Behind"; State.tpCameraSmooth = 0
+
+    State.firstPerson = false; State.thirdPerson = true; State.cameraDistance = 10
+    State.fov = 70; State.mouseUnlocked = false; State.cameraShake = true
+    State.cameraSpin = false; State.cameraSpinSpeed = 5; State.freecam = false; State.freecamSpeed = 50
+    State.cameraRoll = 0; State.removeUI = false; State.nightMode = false; State.noCameraClip = false
+    State.forceView = false; State.transparentUI = false
+
+    State.espEnabled = false; State.espMode = "Highlight"; State.espColor = Color3.fromRGB(255,50,50)
+    State.espTransparency = 0.3; State.espThickness = 2; State.espShowName = true
+    State.espShowDistance = true; State.espShowHealth = true; State.tracers = false
+    State.tracerColor = Color3.fromRGB(255,255,255); State.tracerThickness = 0.1; State.espNPC = false
+    State.wireframe = false; State.wireframeTransparency = 0.8; State.textureTransparency = 0
+    State.outlineWorld = false; State.outlineWorldColor = Color3.fromRGB(255,0,0)
+    State.playerMaterial = "Default"; State.playerColor = false
+    State.playerColorValue = Color3.fromRGB(255,0,0); State.rainbowPlayers = false
+
+    State.highlightHead = false; State.headColor = Color3.fromRGB(255,50,50); State.headTransparency = 0.3
+    State.highlightTorso = false; State.torsoColor = Color3.fromRGB(50,255,50); State.torsoTransparency = 0.3
+    State.highlightArms = false; State.armsColor = Color3.fromRGB(50,50,255); State.armsTransparency = 0.3
+    State.highlightLegs = false; State.legsColor = Color3.fromRGB(255,255,50); State.legsTransparency = 0.3
+    State.skeletonESP = false; State.skeletonColor = Color3.fromRGB(255,255,255)
+    State.highlightOutline = true; State.highlightOutlineColor = Color3.fromRGB(255,255,255)
+    State.highlightFillColor = Color3.fromRGB(255,50,50)
+
+    State.aimbotEnabled = false; State.aimbotFOV = 90; State.aimbotSmoothness = 1
+    State.aimbotTargetPart = "Head"; State.aimbotMode = "Crosshair"; State.aimbotLockTarget = nil
+    State.aimbotMaxDistance = 500; State.aimbotIgnoreSpawn = true; State.aimbotIgnoreTeam = true
+    State.aimbotTargetNPC = true; State.aimbotTargetPlayers = true
+    State.aimbotPlayerList = {}; State.aimbotListMode = "Blacklist"
+    State.aimAssist = false; State.aimAssistStrength = 0.5; State.silentAim = false
+    State.silentAimFOV = 90; State.silentAimTargetPart = "Head"; State.triggerBotEnabled = false
+    State.triggerBotDelay = 0.1; State.triggerBotTargetPart = "Head"
+
+    State.worldBrightness = 3; State.worldAmbient = Color3.fromRGB(128,128,128)
+    State.worldOutdoorAmbient = Color3.fromRGB(128,128,128); State.worldExposureCompensation = 0
+    State.worldEnvDiffuseScale = 1; State.worldEnvSpecularScale = 1; State.worldShadowSoftness = 0.5
+    State.worldGlobalShadows = true; State.worldClockTime = 14; State.worldAtmosphereEnabled = true
+    State.worldAtmosphereDensity = 0.3; State.worldAtmosphereOffset = 0
+    State.worldAtmosphereColor = Color3.fromRGB(200,200,255); State.worldAtmosphereGlare = 0
+    State.worldAtmosphereHaze = 0; State.disableFog = false; State.noTextures = false
+
+    State.toggleGuiKey = "RightShift"; State.unlockMouseKey = "LeftAlt"; State.flyKey = "F"
+    State.noClipKey = "N"; State.airStrafeKey = "V"; State.speedBoostKey = "B"
+    State.aimbotKey = "T"; State.silentAimKey = "Y"; State.triggerBotKey = "G"
+    State.teleportSelectKey = "L"; State.teleportExecuteKey = "Slash"; State.panicKey = "F8"
+    State.quickTurnKey = "Q"; State.rocketJumpKey = "X"; State.freecamKey = "P"
+
+    State.guiOpen = true; State.guiBackgroundColor = Color3.fromRGB(0,0,0)
+    State.guiStrokeColor = Color3.fromRGB(255,255,255); State.guiFrameColor = Color3.fromRGB(5,5,5)
+    State.showNotifications = true; State.notificationDuration = 3; State.musicEnabled = false
+    State.musicURL = ""; State.musicVolume = 0.5; State.musicLoop = false
+    State.clickSound = "None"; State.clickVolume = 0.5
+
+    State.colorPickerOpen = false; State.colorPickerCallback = nil
+    State.colorPickerHue = 0; State.colorPickerSat = 1; State.colorPickerVal = 1; State.colorPickerFrame = nil
+
+    print("[State] Initialized")
 end
 
 return State
