@@ -2,7 +2,7 @@
 -- Все 11 вкладок: Legit, Rage, Aimbot, Visual, Body, TP, View, World, Farm, Keys, Settings
 
 local SwitchContent = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local State = require(script.Parent.Parent.Core.State)
 local Utils = require(script.Parent.Parent.Core.Utils)
 local GUIManager = require(script.Parent.Parent.Managers.GUIManager)
