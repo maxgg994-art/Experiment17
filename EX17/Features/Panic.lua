@@ -1,23 +1,16 @@
 -- Features/Panic.lua
--- Panic Mode + Safe Functions
 
-local Panic = {}
 local Services = _G.Experiment17.Services
-local State = require(script.Parent.Parent.Core.State)
-local ESPManager = require(script.Parent.Parent.Managers.ESPManager)
-local WorldManager = require(script.Parent.Parent.Managers.WorldManager)
-local MusicManager = require(script.Parent.Parent.Managers.MusicManager)
-local NotificationManager = require(script.Parent.Parent.Managers.NotificationManager)
+local State = _G.Experiment17.State
+local Panic = {}
 
 function Panic.shutdown()
-    -- Отключаем все булевы функции
     for k, v in pairs(State) do
         if type(v) == "boolean" and k ~= "guiOpen" and k ~= "showNotifications" and k ~= "safeFunctions" then
             State[k] = false
         end
     end
 
-    -- Сбрасываем числовые значения
     State.gravity = 196.2
     State.characterSize = 1
     State.jumpPower = 50
@@ -49,7 +42,6 @@ function Panic.shutdown()
     State.wireframeTransparency = 0.8
     State.farmSpeed = 2
 
-    -- Сбрасываем цвета
     State.espColor = Color3.fromRGB(255, 50, 50)
     State.tracerColor = Color3.fromRGB(255, 255, 255)
     State.outlineWorldColor = Color3.fromRGB(255, 0, 0)
@@ -81,43 +73,36 @@ function Panic.shutdown()
     State.musicCurrentIndex = 1
     State.musicPlaying = false
 
-    -- Удаляем физические объекты
     if State.bodyGyro then State.bodyGyro:Destroy(); State.bodyGyro = nil end
     if State.bodyVelocity then State.bodyVelocity:Destroy(); State.bodyVelocity = nil end
     if State.farmPathfind then State.farmPathfind = nil end
 
-    -- Останавливаем музыку
-    MusicManager.stop()
+    local ESPManager = _G.Experiment17.ESPManager
+    local WorldManager = _G.Experiment17.WorldManager
+    local MusicManager = _G.Experiment17.MusicManager
 
-    -- Очищаем ESP и Wireframe
-    ESPManager.clearAll()
-    WorldManager.applyWireframe(false)
-    WorldManager.applyOutlineWorld(false)
+    if MusicManager then MusicManager.stop() end
+    if ESPManager then ESPManager.clearAll() end
+    if WorldManager then WorldManager.applyWireframe(false); WorldManager.applyOutlineWorld(false) end
 
-    -- Сбрасываем камеру и гравитацию
     Services.camera.FieldOfView = 70
     workspace.Gravity = 196.2
 
-    -- Сбрасываем персонажа
     if Services.player.Character then
         local hum = Services.player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = 16
-            hum.JumpPower = 50
-            hum.PlatformStand = false
-        end
+        if hum then hum.WalkSpeed = 16; hum.JumpPower = 50; hum.PlatformStand = false end
     end
 
-    -- Включаем стандартный GUI
     Services.StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
-    Services.playerGui.Enabled = true
 
-    -- Обновляем все тумблеры в GUI
     for name, setter in pairs(State.toggleSetters) do
         if setter then setter(false) end
     end
 
-    NotificationManager.show("PANIC MODE - All disabled", Color3.fromRGB(255, 0, 0))
+    local NotificationManager = _G.Experiment17.NotificationManager
+    if NotificationManager then
+        NotificationManager.show("PANIC MODE - All disabled", Color3.fromRGB(255, 0, 0))
+    end
 end
 
 function Panic.applySafeFunctions()
@@ -148,10 +133,7 @@ function Panic.applySafeFunctions()
 
     if Services.player.Character then
         local hum = Services.player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = State.safeSpeed
-            hum.JumpPower = State.safeJump
-        end
+        if hum then hum.WalkSpeed = State.safeSpeed; hum.JumpPower = State.safeJump end
     end
 
     Services.camera.FieldOfView = State.safeFOV
@@ -163,7 +145,10 @@ function Panic.applySafeFunctions()
         if setter then setter(false) end
     end
 
-    NotificationManager.show("Safe Functions: ON", Color3.fromRGB(0, 255, 0))
+    local NotificationManager = _G.Experiment17.NotificationManager
+    if NotificationManager then
+        NotificationManager.show("Safe Functions: ON", Color3.fromRGB(0, 255, 0))
+    end
 end
 
 return Panic
