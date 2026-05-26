@@ -2,7 +2,7 @@
 -- Визуальные настройки мира: Wireframe, Outline, текстуры, освещение, погода, пресеты
 
 local WorldManager = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local Utils = require(script.Parent.Parent.Core.Utils)
 local State = require(script.Parent.Parent.Core.State)
 
