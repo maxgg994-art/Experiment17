@@ -1,15 +1,10 @@
 -- Managers/UIFactory.lua
--- UI Factory: прозрачные фреймы с UICorner, тумблеры, слайдеры, дропдауны, цвет, клавиши
 
-local UIFactory = {}
 local Services = _G.Experiment17.Services
-local Utils = require(script.Parent.Parent.Core.Utils)
-local State = require(script.Parent.Parent.Core.State)
-local ColorPicker = nil -- Загрузим позже чтобы избежать циклической зависимости
+local State = _G.Experiment17.State
+local Utils = _G.Experiment17.Utils
+local UIFactory = {}
 
--- ========================================
--- FUNCTION FRAME (прозрачный + UICorner)
--- ========================================
 function UIFactory.createFunctionFrame(parent, funcName, layoutOrder)
     local frame = Instance.new("Frame")
     frame.Name = funcName .. "Frame"
@@ -37,9 +32,6 @@ function UIFactory.createFunctionFrame(parent, funcName, layoutOrder)
     return frame
 end
 
--- ========================================
--- TUMBLER (переключатель)
--- ========================================
 function UIFactory.addThumbler(parent, default, callback)
     local tumbler = Instance.new("TextButton")
     tumbler.Name = "Tumbler"
@@ -85,9 +77,6 @@ function UIFactory.addThumbler(parent, default, callback)
     return setToggle
 end
 
--- ========================================
--- SLIDER (Integer) с TextBox
--- ========================================
 function UIFactory.addSlider(parent, min, max, default, callback)
     local value = default
 
@@ -174,9 +163,6 @@ function UIFactory.addSlider(parent, min, max, default, callback)
     end)
 end
 
--- ========================================
--- FLOAT SLIDER с TextBox
--- ========================================
 function UIFactory.addFloatSlider(parent, min, max, default, callback)
     local value = default
 
@@ -263,9 +249,6 @@ function UIFactory.addFloatSlider(parent, min, max, default, callback)
     end)
 end
 
--- ========================================
--- DROPDOWN
--- ========================================
 function UIFactory.addDropdown(parent, options, default, callback)
     local selected = Instance.new("TextButton")
     selected.Size = UDim2.new(0, 100, 0, 22)
@@ -320,9 +303,6 @@ function UIFactory.addDropdown(parent, options, default, callback)
     end)
 end
 
--- ========================================
--- COLOR SLIDER (RGB полоски + превью для ColorPicker)
--- ========================================
 function UIFactory.addColorSlider(parent, text, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -8, 0, 100)
@@ -357,22 +337,26 @@ function UIFactory.addColorSlider(parent, text, callback)
     Utils.removeSelection(preview)
     Utils.addCorner(preview, 4)
 
-    -- При клике открываем ColorPicker
     preview.MouseButton1Click:Connect(function()
+        local ColorPicker = _G.Experiment17.ColorPicker
         if not ColorPicker then
             ColorPicker = require(script.Parent.ColorPicker)
         end
-        ColorPicker.open(function(color)
-            rv = math.floor(color.R * 255)
-            gv = math.floor(color.G * 255)
-            bv = math.floor(color.B * 255)
-            preview.BackgroundColor3 = Color3.fromRGB(rv, gv, bv)
-            rFill.Size = UDim2.new(rv / 255, 0, 1, 0)
-            gFill.Size = UDim2.new(gv / 255, 0, 1, 0)
-            bFill.Size = UDim2.new(bv / 255, 0, 1, 0)
-            callback(Color3.fromRGB(rv, gv, bv))
-        end, Color3.fromRGB(rv, gv, bv))
+        if ColorPicker and ColorPicker.open then
+            ColorPicker.open(function(color)
+                rv = math.floor(color.R * 255)
+                gv = math.floor(color.G * 255)
+                bv = math.floor(color.B * 255)
+                preview.BackgroundColor3 = Color3.fromRGB(rv, gv, bv)
+                if rFill then rFill.Size = UDim2.new(rv / 255, 0, 1, 0) end
+                if gFill then gFill.Size = UDim2.new(gv / 255, 0, 1, 0) end
+                if bFill then bFill.Size = UDim2.new(bv / 255, 0, 1, 0) end
+                callback(Color3.fromRGB(rv, gv, bv))
+            end, Color3.fromRGB(rv, gv, bv))
+        end
     end)
+
+    local rFill, gFill, bFill
 
     local function makeRGB(char, color, yPos, setVal)
         local lbl = Instance.new("TextLabel")
@@ -436,14 +420,11 @@ function UIFactory.addColorSlider(parent, text, callback)
         return fill
     end
 
-    local rFill = makeRGB("R", Color3.fromRGB(255, 0, 0), 24, function(v) rv = v end)
-    local gFill = makeRGB("G", Color3.fromRGB(0, 255, 0), 48, function(v) gv = v end)
-    local bFill = makeRGB("B", Color3.fromRGB(0, 0, 255), 72, function(v) bv = v end)
+    rFill = makeRGB("R", Color3.fromRGB(255, 0, 0), 24, function(v) rv = v end)
+    gFill = makeRGB("G", Color3.fromRGB(0, 255, 0), 48, function(v) gv = v end)
+    bFill = makeRGB("B", Color3.fromRGB(0, 0, 255), 72, function(v) bv = v end)
 end
 
--- ========================================
--- KEYBIND BUTTON
--- ========================================
 function UIFactory.addKeybindButton(parent, actionName, currentKey)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -16, 0, 30)
