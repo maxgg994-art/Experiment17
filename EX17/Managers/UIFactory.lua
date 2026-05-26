@@ -2,7 +2,7 @@
 -- UI Factory: прозрачные фреймы с UICorner, тумблеры, слайдеры, дропдауны, цвет, клавиши
 
 local UIFactory = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local Utils = require(script.Parent.Parent.Core.Utils)
 local State = require(script.Parent.Parent.Core.State)
 local ColorPicker = nil -- Загрузим позже чтобы избежать циклической зависимости
