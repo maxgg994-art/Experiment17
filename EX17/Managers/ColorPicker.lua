@@ -1,16 +1,11 @@
 -- Managers/ColorPicker.lua
--- HSV Color Picker с HEX-вводом, открывается при клике на превью цвета
 
-local ColorPicker = {}
 local Services = _G.Experiment17.Services
-local Utils = require(script.Parent.Parent.Core.Utils)
-local State = require(script.Parent.Parent.Core.State)
-local GUIManager = require(script.Parent.GUIManager)
+local State = _G.Experiment17.State
+local Utils = _G.Experiment17.Utils
+local ColorPicker = {}
 
-local pickerFrame
-local colorField, colorDot
-local hueBar, hueDot
-local hexBox
+local pickerFrame, colorField, colorDot, hueBar, hueDot, hexBox
 
 function ColorPicker.open(callback, currentColor)
     State.colorPickerCallback = callback
@@ -19,7 +14,6 @@ function ColorPicker.open(callback, currentColor)
     State.colorPickerSat = s
     State.colorPickerVal = v
 
-    -- Создать окно если ещё нет
     if not pickerFrame then
         ColorPicker.create()
     end
@@ -34,6 +28,9 @@ function ColorPicker.close()
 end
 
 function ColorPicker.create()
+    local GUIManager = _G.Experiment17.GUIManager
+    local screenGui = GUIManager and GUIManager.getScreenGui()
+
     local frame = Instance.new("Frame")
     frame.Name = "ColorPicker"
     frame.Size = UDim2.new(0, 240, 0, 300)
@@ -41,11 +38,11 @@ function ColorPicker.create()
     frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     frame.BorderSizePixel = 0
     frame.ZIndex = 500
-    frame.Parent = GUIManager.getScreenGui()
+    frame.Parent = screenGui or Services.playerGui
     Utils.removeSelection(frame)
     Utils.addCorner(frame, 10)
 
-    -- Цветовое поле (SV)
+    -- SV поле
     colorField = Instance.new("ImageButton")
     colorField.Name = "ColorField"
     colorField.Size = UDim2.new(0, 180, 0, 180)
@@ -56,7 +53,6 @@ function ColorPicker.create()
     colorField.Parent = frame
     Utils.removeSelection(colorField)
 
-    -- Кружок на поле
     colorDot = Instance.new("Frame")
     colorDot.Name = "ColorDot"
     colorDot.Size = UDim2.new(0, 12, 0, 12)
@@ -90,7 +86,6 @@ function ColorPicker.create()
     })
     hueGradient.Parent = hueBar
 
-    -- Hue индикатор
     hueDot = Instance.new("Frame")
     hueDot.Name = "HueDot"
     hueDot.Size = UDim2.new(1, 4, 0, 6)
@@ -118,7 +113,7 @@ function ColorPicker.create()
     Utils.removeSelection(hexBox)
     Utils.addCorner(hexBox, 4)
 
-    -- OK кнопка
+    -- OK
     local okBtn = Instance.new("TextButton")
     okBtn.Size = UDim2.new(0, 60, 0, 24)
     okBtn.Position = UDim2.new(0, 10, 0, 255)
@@ -132,7 +127,7 @@ function ColorPicker.create()
     Utils.removeSelection(okBtn)
     Utils.addCorner(okBtn, 4)
 
-    -- Cancel кнопка
+    -- Cancel
     local cancelBtn = Instance.new("TextButton")
     cancelBtn.Size = UDim2.new(0, 60, 0, 24)
     cancelBtn.Position = UDim2.new(0, 80, 0, 255)
@@ -148,7 +143,7 @@ function ColorPicker.create()
 
     pickerFrame = frame
 
-    -- Обработчики событий
+    -- События
     colorField.MouseButton1Down:Connect(function() ColorPicker.updateColorFromField() end)
     colorField.MouseMoved:Connect(function()
         if Services.UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
@@ -218,20 +213,11 @@ end
 
 function ColorPicker.updatePreview()
     local c = Color3.fromHSV(State.colorPickerHue, State.colorPickerSat, State.colorPickerVal)
-
-    -- Обновить цвет поля
     local fieldC = Color3.fromHSV(State.colorPickerHue, 1, 1)
     colorField.BackgroundColor3 = fieldC
-
-    -- Позиция кружка
     colorDot.Position = UDim2.new(State.colorPickerSat, -6, 1 - State.colorPickerVal, -6)
-
-    -- Позиция Hue индикатора
     hueDot.Position = UDim2.new(0, -2, State.colorPickerHue, -3)
-
-    -- HEX
     hexBox.Text = Utils.colorToHex(c)
 end
 
-print("[ColorPicker] Loaded")
 return ColorPicker
