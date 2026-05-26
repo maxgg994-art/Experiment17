@@ -2,7 +2,7 @@
 -- Уведомления (stacking, правый низ, Oswald)
 
 local NotificationManager = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local Utils = require(script.Parent.Parent.Core.Utils)
 
 local notifications = {}
