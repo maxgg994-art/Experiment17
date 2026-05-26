@@ -1,10 +1,9 @@
 -- Managers/ESPManager.lua
--- ESP, Tracers, Highlights, Body Highlights, Player Info
 
-local ESPManager = {}
 local Services = _G.Experiment17.Services
-local Utils = require(script.Parent.Parent.Core.Utils)
-local State = require(script.Parent.Parent.Core.State)
+local State = _G.Experiment17.State
+local Utils = _G.Experiment17.Utils
+local ESPManager = {}
 
 function ESPManager.clearAll()
     for _, obj in ipairs(State.espObjects) do
@@ -170,7 +169,7 @@ function ESPManager.createESP(target, isNPC)
         end
     end
 
-    -- Player Info (Name, Distance, Health)
+    -- Player Info
     if State.espShowName or State.espShowDistance or State.espShowHealth then
         local info = Instance.new("BillboardGui")
         info.Name = "ESP_Info"
@@ -225,5 +224,4 @@ function ESPManager.refreshAll()
     end
 end
 
-print("[ESPManager] Loaded")
 return ESPManager
