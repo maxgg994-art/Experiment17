@@ -2,7 +2,7 @@
 -- Центральная таблица состояния всего чита
 
 local State = {}
-local Services = require(script.Parent.Services)
+local Services = _G.Experiment17.Services
 
 -- Значения по умолчанию для сброса
 local defaults = {
