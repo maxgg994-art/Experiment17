@@ -30,52 +30,93 @@ print("=" .. string.rep("=", 50))
 -- ========================================
 -- ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ КОДА ИЗ RAW
 -- ========================================
-local function fetchModule(url)
+local function fetchModule(path)
+    local url = "https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/" .. path
     local success, result = pcall(function()
         return game:HttpGet(url)
     end)
-    if success then
-        return loadstring(result)()
-    else
-        warn("Failed to load: " .. url)
+    if not success then
+        warn("[Experiment17] Failed to download: " .. url)
         return nil
     end
+    
+    local func, err = loadstring(result)
+    if not func then
+        warn("[Experiment17] Failed to parse: " .. path .. " | Error: " .. tostring(err))
+        return nil
+    end
+    
+    local ok, module = pcall(func)
+    if not ok then
+        warn("[Experiment17] Failed to execute: " .. path .. " | Error: " .. tostring(module))
+        return nil
+    end
+    
+    return module
 end
 
 -- ========================================
--- БАЗОВЫЙ URL ДЛЯ RAW ФАЙЛОВ
+-- ЗАГРУЗКА МОДУЛЕЙ
 -- ========================================
-local BASE_URL = "https://raw.githubusercontent.com/THEMIKEMAN201/Experiment17/main/"
+print("[Experiment17] Loading modules...")
 
--- ========================================
--- ЗАГРУЗКА МОДУЛЕЙ ЧЕРЕЗ LOADSTRING
--- ========================================
-local Services = fetchModule(BASE_URL .. "Core/Services.lua") or require(script.Core.Services)
+local Services = fetchModule("Core/Services.lua")
+if not Services then error("Failed to load Services") end
 Services.init()
 
-local State = fetchModule(BASE_URL .. "Core/State.lua") or require(script.Core.State)
+local State = fetchModule("Core/State.lua")
+if not State then error("Failed to load State") end
 State.init()
 
-local Utils = fetchModule(BASE_URL .. "Core/Utils.lua") or require(script.Core.Utils)
+local Utils = fetchModule("Core/Utils.lua")
+if not Utils then error("Failed to load Utils") end
 
 -- Менеджеры
-local NotificationManager = fetchModule(BASE_URL .. "Managers/NotificationManager.lua") or require(script.Managers.NotificationManager)
-local GUIManager = fetchModule(BASE_URL .. "Managers/GUIManager.lua") or require(script.Managers.GUIManager)
-local ESPManager = fetchModule(BASE_URL .. "Managers/ESPManager.lua") or require(script.Managers.ESPManager)
-local WorldManager = fetchModule(BASE_URL .. "Managers/WorldManager.lua") or require(script.Managers.WorldManager)
-local AimbotManager = fetchModule(BASE_URL .. "Managers/AimbotManager.lua") or require(script.Managers.AimbotManager)
-local FarmManager = fetchModule(BASE_URL .. "Managers/FarmManager.lua") or require(script.Managers.FarmManager)
-local InputManager = fetchModule(BASE_URL .. "Managers/InputManager.lua") or require(script.Managers.InputManager)
-local MusicManager = fetchModule(BASE_URL .. "Managers/MusicManager.lua") or require(script.Managers.MusicManager)
-local ColorPicker = fetchModule(BASE_URL .. "Managers/ColorPicker.lua") or require(script.Managers.ColorPicker)
+local NotificationManager = fetchModule("Managers/NotificationManager.lua")
+if not NotificationManager then error("Failed to load NotificationManager") end
+
+local GUIManager = fetchModule("Managers/GUIManager.lua")
+if not GUIManager then error("Failed to load GUIManager") end
+
+local UIFactory = fetchModule("Managers/UIFactory.lua")
+if not UIFactory then error("Failed to load UIFactory") end
+
+local ESPManager = fetchModule("Managers/ESPManager.lua")
+if not ESPManager then error("Failed to load ESPManager") end
+
+local WorldManager = fetchModule("Managers/WorldManager.lua")
+if not WorldManager then error("Failed to load WorldManager") end
+
+local AimbotManager = fetchModule("Managers/AimbotManager.lua")
+if not AimbotManager then error("Failed to load AimbotManager") end
+
+local FarmManager = fetchModule("Managers/FarmManager.lua")
+if not FarmManager then error("Failed to load FarmManager") end
+
+local InputManager = fetchModule("Managers/InputManager.lua")
+if not InputManager then error("Failed to load InputManager") end
+
+local MusicManager = fetchModule("Managers/MusicManager.lua")
+if not MusicManager then error("Failed to load MusicManager") end
+
+local ColorPicker = fetchModule("Managers/ColorPicker.lua")
+if not ColorPicker then error("Failed to load ColorPicker") end
 
 -- Функции
-local Heartbeat = fetchModule(BASE_URL .. "Features/Heartbeat.lua") or require(script.Features.Heartbeat)
-local Stepped = fetchModule(BASE_URL .. "Features/Stepped.lua") or require(script.Features.Stepped)
-local Panic = fetchModule(BASE_URL .. "Features/Panic.lua") or require(script.Features.Panic)
+local Heartbeat = fetchModule("Features/Heartbeat.lua")
+if not Heartbeat then error("Failed to load Heartbeat") end
+
+local Stepped = fetchModule("Features/Stepped.lua")
+if not Stepped then error("Failed to load Stepped") end
+
+local Panic = fetchModule("Features/Panic.lua")
+if not Panic then error("Failed to load Panic") end
 
 -- Вкладки
-local SwitchContent = fetchModule(BASE_URL .. "Tabs/SwitchContent.lua") or require(script.Tabs.SwitchContent)
+local SwitchContent = fetchModule("Tabs/SwitchContent.lua")
+if not SwitchContent then error("Failed to load SwitchContent") end
+
+print("[Experiment17] All modules loaded!")
 
 -- ========================================
 -- ИНИЦИАЛИЗАЦИЯ
