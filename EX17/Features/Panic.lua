@@ -2,7 +2,7 @@
 -- Panic Mode + Safe Functions
 
 local Panic = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local State = require(script.Parent.Parent.Core.State)
 local ESPManager = require(script.Parent.Parent.Managers.ESPManager)
 local WorldManager = require(script.Parent.Parent.Managers.WorldManager)
