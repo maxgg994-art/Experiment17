@@ -1,10 +1,6 @@
 -- Main.lua
--- Experiment17 v5.3 - All-in-One Loader
--- ВСЕ модули в одном файле, работает через loadstring без доп. файлов
+-- Experiment17 v5.3 - All-in-One Loader (прямые ссылки)
 
--- ========================================
--- РАСЧЁТ МАСШТАБА
--- ========================================
 local camera = workspace.CurrentCamera
 local viewport = camera.ViewportSize
 local screenWidth = viewport.X
@@ -24,86 +20,50 @@ _G.Experiment17 = {
 
 print("=" .. string.rep("=", 50))
 print("Experiment17 v5.3 - Initializing...")
-print("Screen: " .. math.floor(screenWidth) .. "x" .. math.floor(screenHeight))
-print("Scale: " .. string.format("%.2f", guiScale))
 print("=" .. string.rep("=", 50))
 
--- ========================================
--- ЗАГРУЗКА МОДУЛЕЙ С ПРОВЕРКОЙ
--- ========================================
-local function loadModule(url)
-    local success, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-    if not success then
-        warn("Download failed: " .. url)
-        return nil
-    end
-    
-    local f, err = loadstring(result)
-    if not f then
-        warn("Parse failed: " .. url .. " - " .. err)
-        return nil
-    end
-    
-    local ok, mod = pcall(f)
-    if not ok then
-        warn("Execute failed: " .. url .. " - " .. tostring(mod))
-        return nil
-    end
-    
-    if type(mod) ~= "table" then
-        warn("Module returned non-table: " .. url .. " - " .. type(mod))
-        return nil
-    end
-    
+local function fetch(url)
+    local ok, data = pcall(game.HttpGet, game, url)
+    if not ok then error("Download failed: " .. url) end
+    local fn, err = loadstring(data)
+    if not fn then error("Parse error: " .. err) end
+    local ok2, mod = pcall(fn)
+    if not ok2 then error("Execute error: " .. tostring(mod)) end
     return mod
 end
 
-local BASE = "https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/"
+-- Все модули с прямыми raw URL
+local Services     = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Core/Services.lua")
+local State        = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Core/State.lua")
+local Utils        = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Core/Utils.lua")
+local Notification = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/NotificationManager.lua")
+local GUI          = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/GUIManager.lua")
+local ESP          = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/ESPManager.lua")
+local World        = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/WorldManager.lua")
+local Aimbot       = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/AimbotManager.lua")
+local Farm         = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/FarmManager.lua")
+local Input        = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/InputManager.lua")
+local Music        = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/MusicManager.lua")
+local ColorPicker  = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Managers/ColorPicker.lua")
+local Heartbeat    = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Features/Heartbeat.lua")
+local Stepped      = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Features/Stepped.lua")
+local Panic        = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Features/Panic.lua")
+local Switch       = fetch("https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/Tabs/SwitchContent.lua")
 
-print("Loading modules...")
+print("All 14 modules loaded!")
 
-local Services = loadModule(BASE .. "Core/Services.lua")
 Services.init()
-
-local State = loadModule(BASE .. "Core/State.lua")
 State.init()
-
-local Utils = loadModule(BASE .. "Core/Utils.lua")
-
-local NotificationManager = loadModule(BASE .. "Managers/NotificationManager.lua")
-local GUIManager = loadModule(BASE .. "Managers/GUIManager.lua")
-local ESPManager = loadModule(BASE .. "Managers/ESPManager.lua")
-local WorldManager = loadModule(BASE .. "Managers/WorldManager.lua")
-local AimbotManager = loadModule(BASE .. "Managers/AimbotManager.lua")
-local FarmManager = loadModule(BASE .. "Managers/FarmManager.lua")
-local InputManager = loadModule(BASE .. "Managers/InputManager.lua")
-local MusicManager = loadModule(BASE .. "Managers/MusicManager.lua")
-local ColorPicker = loadModule(BASE .. "Managers/ColorPicker.lua")
-local Heartbeat = loadModule(BASE .. "Features/Heartbeat.lua")
-local Stepped = loadModule(BASE .. "Features/Stepped.lua")
-local Panic = loadModule(BASE .. "Features/Panic.lua")
-local SwitchContent = loadModule(BASE .. "Tabs/SwitchContent.lua")
-
-print("All modules loaded!")
-
--- ========================================
--- ИНИЦИАЛИЗАЦИЯ
--- ========================================
-GUIManager.create()
-InputManager.init()
-SwitchContent.init()
-WorldManager.readCurrentSettings()
-WorldManager.applyWorldSettings()
-SwitchContent.switch("Legit")
+GUI.create()
+Input.init()
+Switch.init()
+World.readCurrentSettings()
+World.applyWorldSettings()
+Switch.switch("Legit")
 Heartbeat.start()
 Stepped.start()
-
 Utils.lockMouse()
 Utils.updateNPCList(State.npcList)
-NotificationManager.show("Experiment17 loaded! RightShift - GUI", Color3.fromRGB(0, 255, 0))
+Notification.show("Experiment17 loaded! RightShift - GUI", Color3.fromRGB(0, 255, 0))
 
-print("=" .. string.rep("=", 50))
-print("Experiment17 v5.3 - Ready!")
-print("=" .. string.rep("=", 50))
+print("Ready!")
