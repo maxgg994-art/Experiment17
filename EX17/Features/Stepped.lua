@@ -2,7 +2,7 @@
 -- NoClip + все корутины (Respawn, FastSwim, NoLava, InfStamina, AntiTP, ForceView, TransparentUI, ESP, NPC, FarmCleanup)
 
 local Stepped = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local State = require(script.Parent.Parent.Core.State)
 local ESPManager = require(script.Parent.Parent.Managers.ESPManager)
 local FarmManager = require(script.Parent.Parent.Managers.FarmManager)
