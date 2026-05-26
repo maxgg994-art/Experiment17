@@ -2,7 +2,7 @@
 -- HSV Color Picker с HEX-вводом, открывается при клике на превью цвета
 
 local ColorPicker = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local Utils = require(script.Parent.Parent.Core.Utils)
 local State = require(script.Parent.Parent.Core.State)
 local GUIManager = require(script.Parent.GUIManager)
