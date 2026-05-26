@@ -1,23 +1,21 @@
 -- Features/Stepped.lua
--- NoClip + все корутины (Respawn, FastSwim, NoLava, InfStamina, AntiTP, ForceView, TransparentUI, ESP, NPC, FarmCleanup)
 
-local Stepped = {}
 local Services = _G.Experiment17.Services
-local State = require(script.Parent.Parent.Core.State)
-local ESPManager = require(script.Parent.Parent.Managers.ESPManager)
-local FarmManager = require(script.Parent.Parent.Managers.FarmManager)
-local Utils = require(script.Parent.Parent.Core.Utils)
+local State = _G.Experiment17.State
+local Stepped = {}
 
 function Stepped.start()
+    local ESPManager = _G.Experiment17.ESPManager
+    local FarmManager = _G.Experiment17.FarmManager
+    local Utils = _G.Experiment17.Utils
+
     -- ========================================
     -- STEPPED - NoClip
     -- ========================================
     Services.RunService.Stepped:Connect(function()
         if State.noClip and Services.player.Character then
             for _, part in ipairs(Services.player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
+                if part:IsA("BasePart") then part.CanCollide = false end
             end
         end
     end)
@@ -29,16 +27,13 @@ function Stepped.start()
         while true do
             if State.autoRespawn and Services.player.Character then
                 local hum = Services.player.Character:FindFirstChildOfClass("Humanoid")
-                if hum and hum.Health <= 0 then
-                    local ct = tick()
-                    if ct - State.lastRespawnTime > 2 then
-                        pcall(function()
-                            Services.VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, nil)
-                            task.wait(0.1)
-                            Services.VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, nil)
-                        end)
-                        State.lastRespawnTime = ct
-                    end
+                if hum and hum.Health <= 0 and tick() - State.lastRespawnTime > 2 then
+                    pcall(function()
+                        Services.VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, nil)
+                        task.wait(0.1)
+                        Services.VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, nil)
+                    end)
+                    State.lastRespawnTime = tick()
                 end
             end
             task.wait(1)
@@ -105,18 +100,15 @@ function Stepped.start()
     end)
 
     -- ========================================
-    -- ANTI TELEPORT (без дёргания камеры)
+    -- ANTI TELEPORT
     -- ========================================
     task.spawn(function()
         while true do
             if State.antiTeleport and Services.player.Character then
                 local root = Services.player.Character:FindFirstChild("HumanoidRootPart")
                 if root then
-                    if State.antiTeleportPos then
-                        local dist = (root.Position - State.antiTeleportPos).Magnitude
-                        if dist > 50 then
-                            root.CFrame = CFrame.new(State.antiTeleportPos)
-                        end
+                    if State.antiTeleportPos and (root.Position - State.antiTeleportPos).Magnitude > 50 then
+                        root.CFrame = CFrame.new(State.antiTeleportPos)
                     end
                     State.antiTeleportPos = root.Position
                 end
@@ -175,7 +167,7 @@ function Stepped.start()
     -- ========================================
     task.spawn(function()
         while true do
-            FarmManager.cleanup()
+            if FarmManager then FarmManager.cleanup() end
             task.wait(0.5)
         end
     end)
@@ -185,12 +177,9 @@ function Stepped.start()
     -- ========================================
     task.spawn(function()
         while true do
-            if State.espEnabled then
-                local ct = tick()
-                if ct - State.lastESPUpdate > 5 then
-                    ESPManager.refreshAll()
-                    State.lastESPUpdate = ct
-                end
+            if State.espEnabled and tick() - State.lastESPUpdate > 5 then
+                if ESPManager then ESPManager.refreshAll() end
+                State.lastESPUpdate = tick()
             end
             task.wait(1)
         end
@@ -201,7 +190,7 @@ function Stepped.start()
     -- ========================================
     task.spawn(function()
         while true do
-            Utils.updateNPCList(State.npcList)
+            if Utils then Utils.updateNPCList(State.npcList) end
             task.wait(5)
         end
     end)
@@ -211,27 +200,15 @@ function Stepped.start()
     -- ========================================
     Services.Players.PlayerAdded:Connect(function(plr)
         plr.CharacterAdded:Connect(function()
-            if State.espEnabled then
+            if State.espEnabled and ESPManager then
                 task.wait(0.3)
                 ESPManager.createESP(plr, false)
             end
         end)
-
-        if State.antiStaff then
-            -- Проверка при добавлении игрока
-            local blacklist = {}
-            for _, name in ipairs(blacklist) do
-                if plr.Name == name or plr.DisplayName == name then
-                    local Panic = require(script.Parent.Panic)
-                    Panic.shutdown()
-                    return
-                end
-            end
-        end
     end)
 
     Services.Players.PlayerRemoving:Connect(function(plr)
-        if State.espEnabled then
+        if State.espEnabled and ESPManager then
             ESPManager.refreshAll()
         end
         if State.aimbotLockTarget == plr then
@@ -240,7 +217,7 @@ function Stepped.start()
     end)
 
     -- ========================================
-    -- ANTI STAFF (периодическая)
+    -- ANTI STAFF
     -- ========================================
     task.spawn(function()
         while true do
@@ -250,8 +227,8 @@ function Stepped.start()
                     if plr ~= Services.player then
                         for _, name in ipairs(blacklist) do
                             if plr.Name == name or plr.DisplayName == name then
-                                local Panic = require(script.Parent.Panic)
-                                Panic.shutdown()
+                                local Panic = _G.Experiment17.Panic
+                                if Panic then Panic.shutdown() end
                                 return
                             end
                         end
