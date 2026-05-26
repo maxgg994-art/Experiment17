@@ -1,10 +1,9 @@
 -- Managers/FarmManager.lua
--- Автофарм монет с кэшированием и системой спавнов
 
-local FarmManager = {}
 local Services = _G.Experiment17.Services
-local Utils = require(script.Parent.Parent.Core.Utils)
-local State = require(script.Parent.Parent.Core.State)
+local State = _G.Experiment17.State
+local Utils = _G.Experiment17.Utils
+local FarmManager = {}
 
 function FarmManager.updateCache()
     Utils.updateCoinCache(State.coinName, State.cachedCoins)
@@ -21,7 +20,6 @@ function FarmManager.farm()
     local root = char:FindFirstChild("HumanoidRootPart")
     if not hum or not root then return end
 
-    -- Обновляем кэш каждые 3 секунды
     if tick() - State.lastCoinCache > 3 then
         FarmManager.updateCache()
     end
@@ -43,7 +41,7 @@ function FarmManager.farm()
         end
     end
 
-    -- Поиск по кэшу монет
+    -- Поиск по кэшу
     if not nearest then
         for _, coin in ipairs(State.cachedCoins) do
             if coin and coin.Parent then
@@ -53,7 +51,7 @@ function FarmManager.farm()
         end
     end
 
-    -- Перемещение к цели
+    -- Перемещение
     if nearest and nearestDist > 2 then
         if State.farmType == "TP" then
             root.CFrame = CFrame.new(nearest.Position + Vector3.new(0, 3, 0))
@@ -92,5 +90,4 @@ function FarmManager.cleanup()
     end
 end
 
-print("[FarmManager] Loaded")
 return FarmManager
