@@ -2,7 +2,7 @@
 -- Главный GUI: MainFrame, категории, скроллфреймы, перетаскивание, тоггл
 
 local GUIManager = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local Utils = require(script.Parent.Parent.Core.Utils)
 local State = require(script.Parent.Parent.Core.State)
 
