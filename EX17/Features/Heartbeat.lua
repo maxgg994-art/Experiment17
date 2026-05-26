@@ -1,14 +1,15 @@
 -- Features/Heartbeat.lua
--- Все Heartbeat функции: Legit, Rage, View, Fly, Aimbot, AutoFarm
 
-local Heartbeat = {}
 local Services = _G.Experiment17.Services
-local State = require(script.Parent.Parent.Core.State)
-local AimbotManager = require(script.Parent.Parent.Managers.AimbotManager)
-local FarmManager = require(script.Parent.Parent.Managers.FarmManager)
-local Panic = require(script.Parent.Panic)
+local State = _G.Experiment17.State
+local Heartbeat = {}
 
 function Heartbeat.start()
+    local AimbotManager = _G.Experiment17.AimbotManager
+    local FarmManager = _G.Experiment17.FarmManager
+    local Panic = _G.Experiment17.Panic
+    local Utils = _G.Experiment17.Utils
+
     Services.RunService.Heartbeat:Connect(function()
         if State.panicMode then return end
 
@@ -18,18 +19,20 @@ function Heartbeat.start()
         local root = char:FindFirstChild("HumanoidRootPart")
         if not hum or not root then return end
 
-        -- Safe Functions Check
+        -- Safe Functions
         if State.safeFunctions and (State.fly or State.noClip or State.speedBoost or State.reverseWalk or State.phase or State.microTP or State.spinBot or State.infiniteJump or State.speedBurst) then
-            Panic.applySafeFunctions()
+            if Panic then Panic.applySafeFunctions() end
         end
 
-        -- === VIEW ===
+        -- FOV
         Services.camera.FieldOfView = math.clamp(State.fov, 30, 120)
 
+        -- Camera Spin
         if State.cameraSpin then
             Services.camera.CFrame = Services.camera.CFrame * CFrame.Angles(0, math.rad(State.cameraSpinSpeed * 0.5), 0)
         end
 
+        -- Freecam
         if State.freecam then
             Services.camera.CameraType = Enum.CameraType.Scriptable
             local move = Vector3.zero
@@ -46,11 +49,11 @@ function Heartbeat.start()
             Services.camera.CameraType = Enum.CameraType.Custom
         end
 
+        -- Camera Roll
         if State.cameraRoll ~= 0 then
             Services.camera.CFrame = Services.camera.CFrame * CFrame.Angles(0, 0, math.rad(State.cameraRoll * 0.01))
         end
 
-        -- === LEGIT ===
         -- Anti AFK
         if State.antiAFK and tick() - State.lastAFKTime >= State.antiAFKFrequency then
             if State.antiAFKMode == "Micro" then
@@ -129,11 +132,10 @@ function Heartbeat.start()
             end
         end
 
-        -- === RAGE ===
         -- Gravity
         if State.gravity ~= 196.2 then workspace.Gravity = State.gravity end
 
-        -- Jump
+        -- Jump Power
         hum.JumpPower = State.jumpPowerRage > 0 and State.jumpPowerRage or State.jumpPower
 
         -- Infinite Jump
@@ -155,7 +157,7 @@ function Heartbeat.start()
             end
         end
 
-        -- Speed / Reverse Walk / No Slowdown
+        -- Speed / Reverse / NoSlow
         if State.reverseWalk then
             hum.WalkSpeed = State.speedBoost and -16 * State.speedMultiplier or -16
         elseif State.speedBoost then
@@ -167,7 +169,7 @@ function Heartbeat.start()
             hum.WalkSpeed = State.speedBoost and 16 * State.speedMultiplier or 16
         end
 
-        -- Anti Ragdoll / Anti Freeze
+        -- Anti Ragdoll / Freeze
         if State.antiRagdoll and hum:GetState() == Enum.HumanoidStateType.Physics then hum:ChangeState(Enum.HumanoidStateType.GettingUp) end
         if State.antiFreeze and hum:GetState() == Enum.HumanoidStateType.Frozen then hum:ChangeState(Enum.HumanoidStateType.Running) end
 
@@ -252,7 +254,7 @@ function Heartbeat.start()
             root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(State.spinSpeed * 10), 0)
         end
 
-        -- === FLY ===
+        -- Fly
         if State.fly then
             hum.PlatformStand = true
             if State.flyMode == "CFrame" then
@@ -289,22 +291,13 @@ function Heartbeat.start()
             if State.bodyVelocity then State.bodyVelocity:Destroy(); State.bodyVelocity = nil end
         end
 
-        -- === AIMBOT ===
-        if State.silentAim then
-            AimbotManager.silentAim()
-        elseif State.aimbotEnabled then
-            AimbotManager.normalAimbot()
-        end
+        -- Aimbot
+        if State.silentAim and AimbotManager then AimbotManager.silentAim()
+        elseif State.aimbotEnabled and AimbotManager then AimbotManager.normalAimbot() end
+        if State.aimAssist and not State.aimbotEnabled and not State.silentAim and AimbotManager then AimbotManager.aimAssist() end
+        if State.triggerBotEnabled and AimbotManager then AimbotManager.triggerBot() end
 
-        if State.aimAssist and not State.aimbotEnabled and not State.silentAim then
-            AimbotManager.aimAssist()
-        end
-
-        if State.triggerBotEnabled then
-            AimbotManager.triggerBot()
-        end
-
-        -- === FAST INTERACT ===
+        -- Fast Interact
         if State.fastInteract then
             for _, o in ipairs(workspace:GetDescendants()) do
                 if o:IsA("ProximityPrompt") and o.Enabled then
@@ -315,18 +308,17 @@ function Heartbeat.start()
             end
         end
 
-        -- === CHAT SPAM ===
+        -- Chat Spam
         if State.chatSpam and tick() - State.lastChatSpamTime >= State.chatSpamMinDelay + math.random() * (State.chatSpamMaxDelay - State.chatSpamMinDelay) then
             local msgs = {}
             for m in string.gmatch(State.chatSpamMessages, "[^|]+") do table.insert(msgs, m) end
-            if #msgs > 0 then
-                local Utils = require(script.Parent.Parent.Core.Utils)
+            if #msgs > 0 and Utils then
                 for _ = 1, State.chatSpamMode do Utils.sendChat(msgs[math.random(#msgs)]) end
             end
             State.lastChatSpamTime = tick()
         end
 
-        -- === VIEW NIGHT MODE ===
+        -- Night Mode
         if State.nightMode then
             if not Services.Lighting:FindFirstChild("NightModeCC") then
                 local cc = Instance.new("ColorCorrectionEffect"); cc.Name = "NightModeCC"
@@ -347,7 +339,7 @@ function Heartbeat.start()
             end
         end
 
-        -- === TRACERS UPDATE ===
+        -- Tracers Update
         if State.tracers and #State.tracersList > 0 and tick() - State.lastTracerUpdate >= 0.01 then
             for i = 1, #State.tracersList, 4 do
                 local cp = State.tracersList[i]
@@ -356,8 +348,8 @@ function Heartbeat.start()
             State.lastTracerUpdate = tick()
         end
 
-        -- === AUTO FARM ===
-        FarmManager.farm()
+        -- Auto Farm
+        if FarmManager then FarmManager.farm() end
     end)
 end
 
