@@ -1,11 +1,9 @@
 -- Managers/AimbotManager.lua
--- Aimbot, Silent Aim, Trigger Bot, Aim Assist, Team Check, Player List
 
-local AimbotManager = {}
 local Services = _G.Experiment17.Services
-local State = require(script.Parent.Parent.Core.State)
+local State = _G.Experiment17.State
+local AimbotManager = {}
 
--- Получение всех целей
 function AimbotManager.getTargets()
     local targets = {}
     local myTeam = Services.player.Team
@@ -71,7 +69,6 @@ function AimbotManager.getTargets()
     return targets
 end
 
--- Ближайший к курсору
 function AimbotManager.getClosestToCursor(maxDist)
     local closest, closestDist = nil, maxDist or math.huge
     for _, t in ipairs(AimbotManager.getTargets()) do
@@ -87,7 +84,6 @@ function AimbotManager.getClosestToCursor(maxDist)
     return closest
 end
 
--- Ближайший к перекрестию
 function AimbotManager.getClosestToCrosshair(maxFOV)
     local closest, closestAngle = nil, maxFOV or math.huge
     local sc = Vector2.new(Services.camera.ViewportSize.X / 2, Services.camera.ViewportSize.Y / 2)
@@ -104,7 +100,6 @@ function AimbotManager.getClosestToCrosshair(maxFOV)
     return closest
 end
 
--- Ближайший к персонажу
 function AimbotManager.getClosestToCharacter()
     if not Services.player.Character then return nil end
     local closest, closestDist = nil, math.huge
@@ -119,7 +114,6 @@ function AimbotManager.getClosestToCharacter()
     return closest
 end
 
--- Основная цель
 function AimbotManager.getTarget()
     if State.aimbotMode == "Lock" and State.aimbotLockTarget and State.aimbotLockTarget.Character then
         local tp = State.aimbotLockTarget.Character:FindFirstChild(State.aimbotTargetPart)
@@ -143,7 +137,6 @@ function AimbotManager.getTarget()
     return nil
 end
 
--- Silent Aim
 function AimbotManager.silentAim()
     local t = AimbotManager.getTarget()
     if not t or not t.char then return end
@@ -157,7 +150,6 @@ function AimbotManager.silentAim()
     end
 end
 
--- Normal Aimbot
 function AimbotManager.normalAimbot()
     local t = AimbotManager.getTarget()
     if not t or not t.char then return end
@@ -172,7 +164,6 @@ function AimbotManager.normalAimbot()
     end
 end
 
--- Aim Assist
 function AimbotManager.aimAssist()
     local md = Services.UserInputService:GetMouseDelta()
     if md.Magnitude <= 0 then return end
@@ -189,7 +180,6 @@ function AimbotManager.aimAssist()
     State.lastAimAssistTime = tick()
 end
 
--- Trigger Bot
 function AimbotManager.triggerBot()
     if tick() - State.lastTriggerTime < State.triggerBotDelay then return end
 
@@ -199,7 +189,7 @@ function AimbotManager.triggerBot()
         if tp then
             local sp, on = Services.camera:WorldToViewportPoint(tp.Position)
             if on and (Vector2.new(sp.X, sp.Y) - Vector2.new(Services.mouse.X, Services.mouse.Y)).Magnitude < 200 then
-                local Utils = require(script.Parent.Parent.Core.Utils)
+                local Utils = _G.Experiment17.Utils
                 Utils.mouse1click()
                 State.lastTriggerTime = tick()
             end
@@ -207,5 +197,4 @@ function AimbotManager.triggerBot()
     end
 end
 
-print("[AimbotManager] Loaded")
 return AimbotManager
