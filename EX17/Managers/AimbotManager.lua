@@ -2,7 +2,7 @@
 -- Aimbot, Silent Aim, Trigger Bot, Aim Assist, Team Check, Player List
 
 local AimbotManager = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local State = require(script.Parent.Parent.Core.State)
 
 -- Получение всех целей
