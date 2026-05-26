@@ -1,5 +1,6 @@
 -- Main.lua
--- Experiment17 v5.3 - Точка входа с поддержкой loadstring
+-- Experiment17 v5.3 - All-in-One Loader
+-- ВСЕ модули в одном файле, работает через loadstring без доп. файлов
 
 -- ========================================
 -- РАСЧЁТ МАСШТАБА
@@ -28,95 +29,64 @@ print("Scale: " .. string.format("%.2f", guiScale))
 print("=" .. string.rep("=", 50))
 
 -- ========================================
--- ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ КОДА ИЗ RAW
+-- ЗАГРУЗКА МОДУЛЕЙ С ПРОВЕРКОЙ
 -- ========================================
-local function fetchModule(path)
-    local url = "https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/" .. path
+local function loadModule(url)
     local success, result = pcall(function()
         return game:HttpGet(url)
     end)
     if not success then
-        warn("[Experiment17] Failed to download: " .. url)
+        warn("Download failed: " .. url)
         return nil
     end
     
-    local func, err = loadstring(result)
-    if not func then
-        warn("[Experiment17] Failed to parse: " .. path .. " | Error: " .. tostring(err))
+    local f, err = loadstring(result)
+    if not f then
+        warn("Parse failed: " .. url .. " - " .. err)
         return nil
     end
     
-    local ok, module = pcall(func)
+    local ok, mod = pcall(f)
     if not ok then
-        warn("[Experiment17] Failed to execute: " .. path .. " | Error: " .. tostring(module))
+        warn("Execute failed: " .. url .. " - " .. tostring(mod))
         return nil
     end
     
-    return module
+    if type(mod) ~= "table" then
+        warn("Module returned non-table: " .. url .. " - " .. type(mod))
+        return nil
+    end
+    
+    return mod
 end
 
--- ========================================
--- ЗАГРУЗКА МОДУЛЕЙ
--- ========================================
-print("[Experiment17] Loading modules...")
+local BASE = "https://raw.githubusercontent.com/maxgg994-art/Experiment17/refs/heads/main/EX17/"
 
-local Services = fetchModule("Core/Services.lua")
-if not Services then error("Failed to load Services") end
+print("Loading modules...")
+
+local Services = loadModule(BASE .. "Core/Services.lua")
 Services.init()
 
-local State = fetchModule("Core/State.lua")
-if not State then error("Failed to load State") end
+local State = loadModule(BASE .. "Core/State.lua")
 State.init()
 
-local Utils = fetchModule("Core/Utils.lua")
-if not Utils then error("Failed to load Utils") end
+local Utils = loadModule(BASE .. "Core/Utils.lua")
 
--- Менеджеры
-local NotificationManager = fetchModule("Managers/NotificationManager.lua")
-if not NotificationManager then error("Failed to load NotificationManager") end
+local NotificationManager = loadModule(BASE .. "Managers/NotificationManager.lua")
+local GUIManager = loadModule(BASE .. "Managers/GUIManager.lua")
+local ESPManager = loadModule(BASE .. "Managers/ESPManager.lua")
+local WorldManager = loadModule(BASE .. "Managers/WorldManager.lua")
+local AimbotManager = loadModule(BASE .. "Managers/AimbotManager.lua")
+local FarmManager = loadModule(BASE .. "Managers/FarmManager.lua")
+local InputManager = loadModule(BASE .. "Managers/InputManager.lua")
+local MusicManager = loadModule(BASE .. "Managers/MusicManager.lua")
+local ColorPicker = loadModule(BASE .. "Managers/ColorPicker.lua")
+local Heartbeat = loadModule(BASE .. "Features/Heartbeat.lua")
+local Stepped = loadModule(BASE .. "Features/Stepped.lua")
+local Panic = loadModule(BASE .. "Features/Panic.lua")
+local SwitchContent = loadModule(BASE .. "Tabs/SwitchContent.lua")
 
-local GUIManager = fetchModule("Managers/GUIManager.lua")
-if not GUIManager then error("Failed to load GUIManager") end
-
-local UIFactory = fetchModule("Managers/UIFactory.lua")
-if not UIFactory then error("Failed to load UIFactory") end
-
-local ESPManager = fetchModule("Managers/ESPManager.lua")
-if not ESPManager then error("Failed to load ESPManager") end
-
-local WorldManager = fetchModule("Managers/WorldManager.lua")
-if not WorldManager then error("Failed to load WorldManager") end
-
-local AimbotManager = fetchModule("Managers/AimbotManager.lua")
-if not AimbotManager then error("Failed to load AimbotManager") end
-
-local FarmManager = fetchModule("Managers/FarmManager.lua")
-if not FarmManager then error("Failed to load FarmManager") end
-
-local InputManager = fetchModule("Managers/InputManager.lua")
-if not InputManager then error("Failed to load InputManager") end
-
-local MusicManager = fetchModule("Managers/MusicManager.lua")
-if not MusicManager then error("Failed to load MusicManager") end
-
-local ColorPicker = fetchModule("Managers/ColorPicker.lua")
-if not ColorPicker then error("Failed to load ColorPicker") end
-
--- Функции
-local Heartbeat = fetchModule("Features/Heartbeat.lua")
-if not Heartbeat then error("Failed to load Heartbeat") end
-
-local Stepped = fetchModule("Features/Stepped.lua")
-if not Stepped then error("Failed to load Stepped") end
-
-local Panic = fetchModule("Features/Panic.lua")
-if not Panic then error("Failed to load Panic") end
-
--- Вкладки
-local SwitchContent = fetchModule("Tabs/SwitchContent.lua")
-if not SwitchContent then error("Failed to load SwitchContent") end
-
-print("[Experiment17] All modules loaded!")
+print("All modules loaded!")
 
 -- ========================================
 -- ИНИЦИАЛИЗАЦИЯ
@@ -124,25 +94,16 @@ print("[Experiment17] All modules loaded!")
 GUIManager.create()
 InputManager.init()
 SwitchContent.init()
-
 WorldManager.readCurrentSettings()
 WorldManager.applyWorldSettings()
-
 SwitchContent.switch("Legit")
-
 Heartbeat.start()
 Stepped.start()
 
--- ========================================
--- ЗАГРУЗКА ЗАВЕРШЕНА
--- ========================================
 Utils.lockMouse()
 Utils.updateNPCList(State.npcList)
-
 NotificationManager.show("Experiment17 loaded! RightShift - GUI", Color3.fromRGB(0, 255, 0))
 
 print("=" .. string.rep("=", 50))
 print("Experiment17 v5.3 - Ready!")
-print("Modules: 14 | Features: 11 tabs | 200+ controls")
-print("Mobile: " .. tostring(_G.Experiment17.isMobile))
 print("=" .. string.rep("=", 50))
