@@ -1,28 +1,18 @@
 -- Managers/NotificationManager.lua
--- Уведомления (stacking, правый низ, Oswald)
 
-local NotificationManager = {}
 local Services = _G.Experiment17.Services
-local Utils = require(script.Parent.Parent.Core.Utils)
-
+local State = _G.Experiment17.State
+local Utils = _G.Experiment17.Utils
+local NotificationManager = {}
 local notifications = {}
-local MAX_NOTIFICATIONS = 5
 
 function NotificationManager.show(text, color)
-    local State = require(script.Parent.Parent.Core.State)
     if not State.showNotifications then return end
 
     local gui = Services.playerGui:FindFirstChild("Experiment17") or Services.playerGui
 
-    -- Сдвигаем старые вверх
-    for _, n in ipairs(notifications) do
-        if n and n.Parent then
-            n.Position = n.Position + UDim2.new(0, 0, 0, -28)
-        end
-    end
-
     -- Удаляем лишние
-    while #notifications >= MAX_NOTIFICATIONS do
+    while #notifications >= 5 do
         local old = table.remove(notifications, 1)
         pcall(function() old:Destroy() end)
     end
@@ -46,8 +36,8 @@ function NotificationManager.show(text, color)
 
     task.delay(State.notificationDuration or 3, function()
         pcall(function()
-            for i, n in ipairs(notifications) do
-                if n == label then
+            for i, notif in ipairs(notifications) do
+                if notif == label then
                     table.remove(notifications, i)
                     break
                 end
