@@ -1,19 +1,13 @@
 -- Managers/InputManager.lua
--- Клавиши, хоткеи, мобильная квадратная кнопка с обводкой
 
-local InputManager = {}
 local Services = _G.Experiment17.Services
-local Utils = require(script.Parent.Parent.Core.Utils)
-local State = require(script.Parent.Parent.Core.State)
-local GUIManager = require(script.Parent.GUIManager)
-local NotificationManager = require(script.Parent.NotificationManager)
-
--- Мобильная кнопка
-local mobileBtn
+local State = _G.Experiment17.State
+local Utils = _G.Experiment17.Utils
+local InputManager = {}
 
 function InputManager.init()
     -- ========================================
-    -- MOBILE BUTTON (квадратная + обводка)
+    -- MOBILE BUTTON
     -- ========================================
     if _G.Experiment17.isMobile then
         local scale = State.guiSize
@@ -25,37 +19,38 @@ function InputManager.init()
         mobileGui.Parent = Services.playerGui
         Utils.removeSelection(mobileGui)
 
-        mobileBtn = Instance.new("TextButton")
-        mobileBtn.Name = "MobileToggle"
-        mobileBtn.Size = UDim2.new(0, 52 * scale, 0, 52 * scale)
-        mobileBtn.Position = UDim2.new(1, -70 * scale, 1, -200 * scale)
-        mobileBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 200)
-        mobileBtn.Text = "GUI"
-        mobileBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        mobileBtn.Font = Enum.Font.Oswald
-        mobileBtn.TextSize = 12 * scale
-        mobileBtn.ZIndex = 200
-        mobileBtn.Parent = mobileGui
-        Utils.removeSelection(mobileBtn)
-        Utils.addCorner(mobileBtn, 10)
-        Utils.addStroke(mobileBtn, 2, Color3.fromRGB(255, 255, 255))
+        local mb = Instance.new("TextButton")
+        mb.Name = "MobileToggle"
+        mb.Size = UDim2.new(0, 52 * scale, 0, 52 * scale)
+        mb.Position = UDim2.new(1, -70 * scale, 1, -200 * scale)
+        mb.BackgroundColor3 = Color3.fromRGB(70, 70, 200)
+        mb.Text = "GUI"
+        mb.TextColor3 = Color3.fromRGB(255, 255, 255)
+        mb.Font = Enum.Font.Oswald
+        mb.TextSize = 12 * scale
+        mb.ZIndex = 200
+        mb.Parent = mobileGui
+        Utils.removeSelection(mb)
+        Utils.addCorner(mb, 10)
+        Utils.addStroke(mb, 2, Color3.fromRGB(255, 255, 255))
 
         local btnDragging = false
         local dragStart, btnStartPos
 
-        mobileBtn.InputBegan:Connect(function(input)
+        mb.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch then
                 btnDragging = true
                 dragStart = input.Position
-                btnStartPos = mobileBtn.Position
+                btnStartPos = mb.Position
             end
         end)
 
-        mobileBtn.InputEnded:Connect(function(input)
+        mb.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Touch then
                 local dist = (input.Position - dragStart).Magnitude
                 if dist < 10 then
-                    GUIManager.toggleGUI()
+                    local GUIManager = _G.Experiment17.GUIManager
+                    if GUIManager then GUIManager.toggleGUI() end
                 end
                 btnDragging = false
             end
@@ -64,7 +59,7 @@ function InputManager.init()
         Services.UserInputService.TouchMoved:Connect(function(input, processed)
             if btnDragging and not processed then
                 local delta = input.Position - dragStart
-                mobileBtn.Position = UDim2.new(
+                mb.Position = UDim2.new(
                     btnStartPos.X.Scale, btnStartPos.X.Offset + delta.X,
                     btnStartPos.Y.Scale, btnStartPos.Y.Offset + delta.Y
                 )
@@ -73,7 +68,7 @@ function InputManager.init()
     end
 
     -- ========================================
-    -- INPUT BEGAN (клавиатура)
+    -- INPUT BEGAN
     -- ========================================
     Services.UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
@@ -96,7 +91,6 @@ function InputManager.init()
                 local stateName = map[State.waitingForKeybind]
                 if stateName then State[stateName] = keyName end
                 State.waitingForKeybind = nil
-                -- Обновляем все кнопки клавиш
                 for k, btn in pairs(State.keybindButtons) do
                     if btn and State[k] then
                         btn.Text = State[k]
@@ -109,8 +103,8 @@ function InputManager.init()
 
         -- Panic
         if keyName == State.panicKey then
-            local Panic = require(script.Parent.Parent.Features.Panic)
-            Panic.shutdown()
+            local Panic = _G.Experiment17.Panic
+            if Panic then Panic.shutdown() end
             return
         end
 
@@ -125,16 +119,19 @@ function InputManager.init()
 
         -- TP Select
         if keyName == State.teleportSelectKey then
-            local AimbotManager = require(script.Parent.AimbotManager)
-            local target = AimbotManager.getClosestToCrosshair(300)
-            if target and target.plr then
-                State.teleportTarget = target.plr
-                NotificationManager.show("Target: " .. target.plr.Name, Color3.fromRGB(255, 255, 0))
-            else
-                NotificationManager.show("No target found", Color3.fromRGB(255, 100, 100))
-            end
-            if State.aimbotMode == "Lock" and target and target.plr then
-                State.aimbotLockTarget = target.plr
+            local AimbotManager = _G.Experiment17.AimbotManager
+            if AimbotManager then
+                local target = AimbotManager.getClosestToCrosshair(300)
+                local NotificationManager = _G.Experiment17.NotificationManager
+                if target and target.plr then
+                    State.teleportTarget = target.plr
+                    if NotificationManager then NotificationManager.show("Target: " .. target.plr.Name, Color3.fromRGB(255, 255, 0)) end
+                else
+                    if NotificationManager then NotificationManager.show("No target found", Color3.fromRGB(255, 100, 100)) end
+                end
+                if State.aimbotMode == "Lock" and target and target.plr then
+                    State.aimbotLockTarget = target.plr
+                end
             end
             return
         end
@@ -143,23 +140,38 @@ function InputManager.init()
         if keyName == State.teleportExecuteKey then
             local target = State.teleportTarget
             if not target then
-                local AimbotManager = require(script.Parent.AimbotManager)
-                local closest = AimbotManager.getClosestToCrosshair(300)
-                if closest and closest.plr then target = closest.plr end
+                local AimbotManager = _G.Experiment17.AimbotManager
+                if AimbotManager then
+                    local closest = AimbotManager.getClosestToCrosshair(300)
+                    if closest and closest.plr then target = closest.plr end
+                end
             end
+            local NotificationManager = _G.Experiment17.NotificationManager
             if target then
-                local Teleport = require(script.Parent.Parent.Features.Teleport)
-                Teleport.teleportToPlayer(target)
-                NotificationManager.show("Teleported to " .. target.Name, Color3.fromRGB(0, 255, 0))
+                -- Teleport logic
+                if target.Character and Services.player.Character then
+                    local tr = target.Character:FindFirstChild("HumanoidRootPart")
+                    local mr = Services.player.Character:FindFirstChild("HumanoidRootPart")
+                    if tr and mr then
+                        local off = Vector3.zero
+                        if State.teleportPosition == "Behind" then off = -tr.CFrame.LookVector * State.teleportDistance
+                        elseif State.teleportPosition == "Front" then off = tr.CFrame.LookVector * State.teleportDistance
+                        elseif State.teleportPosition == "Above" then off = Vector3.new(0, State.teleportDistance, 0)
+                        elseif State.teleportPosition == "Below" then off = Vector3.new(0, -State.teleportDistance, 0) end
+                        mr.CFrame = tr.CFrame + off
+                    end
+                end
+                if NotificationManager then NotificationManager.show("Teleported to " .. target.Name, Color3.fromRGB(0, 255, 0)) end
             else
-                NotificationManager.show("No target", Color3.fromRGB(255, 100, 100))
+                if NotificationManager then NotificationManager.show("No target", Color3.fromRGB(255, 100, 100)) end
             end
             return
         end
 
         -- Toggle GUI
         if keyName == State.toggleGuiKey then
-            GUIManager.toggleGUI()
+            local GUIManager = _G.Experiment17.GUIManager
+            if GUIManager then GUIManager.toggleGUI() end
             return
         end
 
@@ -173,7 +185,7 @@ function InputManager.init()
             return
         end
 
-        -- Toggle Functions (Fly, NoClip, AirStrafe, Speed, Aimbot, Silent, Trigger)
+        -- Toggle Functions
         local toggleMap = {
             [State.flyKey] = "fly",
             [State.noClipKey] = "noClip",
@@ -186,20 +198,18 @@ function InputManager.init()
 
         local toggle = toggleMap[keyName]
         if toggle then
-            -- SafeFunctions блокировка
             if State.safeFunctions and (toggle == "fly" or toggle == "noClip" or toggle == "speedBoost") then
-                NotificationManager.show("Blocked by Safe Functions!", Color3.fromRGB(255, 100, 100))
+                local NotificationManager = _G.Experiment17.NotificationManager
+                if NotificationManager then NotificationManager.show("Blocked by Safe Functions!", Color3.fromRGB(255, 100, 100)) end
                 return
             end
 
             State[toggle] = not State[toggle]
 
-            -- Обновляем тумблер в GUI
             if State.toggleSetters[toggle] then
                 State.toggleSetters[toggle](State[toggle])
             end
 
-            -- Очистка Fly
             if toggle == "fly" and not State.fly then
                 if State.bodyGyro then State.bodyGyro:Destroy(); State.bodyGyro = nil end
                 if State.bodyVelocity then State.bodyVelocity:Destroy(); State.bodyVelocity = nil end
@@ -209,26 +219,28 @@ function InputManager.init()
                 end
             end
 
-            -- Сброс AirStrafe
             if toggle == "airStrafe" and not State.airStrafe then
                 State.airStrafeSpeed = 0
             end
 
-            NotificationManager.show(
-                (State[toggle] and "ON" or "OFF") .. ": " .. toggle,
-                State[toggle] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 100, 100)
-            )
+            local NotificationManager = _G.Experiment17.NotificationManager
+            if NotificationManager then
+                NotificationManager.show(
+                    (State[toggle] and "ON" or "OFF") .. ": " .. toggle,
+                    State[toggle] and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 100, 100)
+                )
+            end
             return
         end
 
-        -- Freecam колёсико
+        -- Freecam колесико
         if State.freecam and input.UserInputType == Enum.UserInputType.MouseWheel then
             State.freecamSpeed = math.clamp(State.freecamSpeed + (input.Position.Z > 0 and 10 or -10), 10, 500)
         end
     end)
 
     -- ========================================
-    -- JUMP REQUEST (AirStrafe разгон)
+    -- JUMP REQUEST
     -- ========================================
     Services.UserInputService.JumpRequest:Connect(function()
         if State.airStrafe and Services.player.Character then
@@ -242,8 +254,6 @@ function InputManager.init()
             end
         end
     end)
-
-    print("[InputManager] Initialized")
 end
 
 return InputManager
