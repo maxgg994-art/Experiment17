@@ -2,7 +2,7 @@
 -- Все Heartbeat функции: Legit, Rage, View, Fly, Aimbot, AutoFarm
 
 local Heartbeat = {}
-local Services = require(script.Parent.Parent.Core.Services)
+local Services = _G.Experiment17.Services
 local State = require(script.Parent.Parent.Core.State)
 local AimbotManager = require(script.Parent.Parent.Managers.AimbotManager)
 local FarmManager = require(script.Parent.Parent.Managers.FarmManager)
