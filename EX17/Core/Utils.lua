@@ -2,7 +2,7 @@
 -- Вспомогательные функции
 
 local Utils = {}
-local Services = require(script.Parent.Services)
+local Services = _G.Experiment17.Services
 
 -- Удаление синей обводки выделения
 function Utils.removeSelection(obj)
